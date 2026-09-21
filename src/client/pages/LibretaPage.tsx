@@ -8,13 +8,6 @@ import { ClientFormModal } from '../components/ClientFormModal';
 import { ChevronRightIcon, EyeIcon, EyeOffIcon, SearchIcon, UserPlusIcon, WhatsappIcon } from '../components/icons';
 import type { Client } from '@shared/types';
 
-function greeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return 'Buenos días';
-  if (h < 20) return 'Buenas tardes';
-  return 'Buenas noches';
-}
-
 export function LibretaPage() {
   const [query, setQuery] = useState('');
   const [showNew, setShowNew] = useState(false);
@@ -49,7 +42,9 @@ export function LibretaPage() {
     <div className="px-4 pt-5">
       <header className="mb-5 flex items-center justify-between">
         <div>
-          <p className="text-sm text-slate-500">{greeting()} 👋</p>
+          <p className="text-sm font-medium text-slate-500">
+            Hola Viejita <span className="animate-wave">👋</span>
+          </p>
           <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Libreta</h1>
         </div>
         <button className="btn-primary px-3.5 py-2.5" onClick={() => setShowNew(true)}>
@@ -60,7 +55,7 @@ export function LibretaPage() {
       <section className="animate-slide-up relative mb-4 overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-700 p-5 text-white shadow-lg shadow-emerald-900/10">
         <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/10" />
         <div className="pointer-events-none absolute -bottom-12 -left-6 h-28 w-28 rounded-full bg-white/5" />
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-center gap-2">
           <p className="text-sm font-medium text-emerald-50/90">Total por cobrar</p>
           <button
             onClick={toggleTotal}
@@ -70,10 +65,10 @@ export function LibretaPage() {
             {showTotal ? <EyeOffIcon size={17} /> : <EyeIcon size={17} />}
           </button>
         </div>
-        <p className="mt-1 text-4xl font-extrabold tracking-tight">
+        <p className="mt-1 text-center text-4xl font-extrabold tracking-tight">
           {showTotal ? formatClp(total) : '$ ******'}
         </p>
-        <div className="mt-4 flex gap-2 text-xs font-semibold">
+        <div className="mt-4 flex justify-center gap-2 text-xs font-semibold">
           <span className="chip bg-white/15 text-white">
             <span className="h-1.5 w-1.5 rounded-full bg-amber-300" /> {debtors.length} con deuda
           </span>

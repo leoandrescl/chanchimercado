@@ -171,3 +171,11 @@ export const MinusIcon = (p: IconProps) => (
     <path d="M5 12h14" />
   </Base>
 );
+export const SwapIcon = (p: IconProps) => (
+  <Base {...p}>
+    <path d="m8 3-4 4 4 4" />
+    <path d="M4 7h16" />
+    <path d="m16 21 4-4-4-4" />
+    <path d="M20 17H4" />
+  </Base>
+);

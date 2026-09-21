@@ -6,10 +6,21 @@ import { formatClp, formatShortDate, monthLabel } from '../lib/format';
 import { Avatar } from '../components/Avatar';
 import { AbonoModal } from '../components/AbonoModal';
 import { ClientFormModal } from '../components/ClientFormModal';
+import { ClientPickerModal } from '../components/ClientPickerModal';
 import { ConfirmDialog } from '../components/Modal';
 import { useToast } from '../lib/toast';
 import { buildAccountMessage, buildSummaryMessage, whatsappLink } from '../lib/whatsapp';
-import { BackIcon, CartIcon, EditIcon, MoneyIcon, ReceiptIcon, SparkleIcon, TrashIcon, WhatsappIcon } from '../components/icons';
+import {
+  BackIcon,
+  CartIcon,
+  EditIcon,
+  MoneyIcon,
+  ReceiptIcon,
+  SparkleIcon,
+  SwapIcon,
+  TrashIcon,
+  WhatsappIcon,
+} from '../components/icons';
 import type { Client, ClientDetail, Movement } from '@shared/types';
 
 function MovementIcon({ type, amount }: { type: Movement['type']; amount: number }) {
@@ -42,6 +53,7 @@ export function ClientPage() {
 
   const [showAbono, setShowAbono] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [movementToDelete, setMovementToDelete] = useState<Movement | null>(null);
 
@@ -59,7 +71,7 @@ export function ClientPage() {
   if (isLoading || !data) {
     return (
       <div className="space-y-3 px-4 pt-5">
-        <div className="card h-40 animate-pulse bg-white/60" />
+        <div className="card h-52 animate-pulse bg-white/60" />
         <div className="card h-24 animate-pulse bg-white/60" />
       </div>
     );
@@ -110,7 +122,10 @@ export function ClientPage() {
         <button className="icon-btn" onClick={() => navigate('/libreta')} aria-label="Volver">
           <BackIcon />
         </button>
-        <div className="flex gap-1">
+        <div className="flex items-center gap-1">
+          <button className="btn-ghost px-3 py-2 text-xs" onClick={() => setShowPicker(true)}>
+            <SwapIcon size={16} /> Cambiar
+          </button>
           <button className="icon-btn" onClick={() => setShowEdit(true)} aria-label="Editar">
             <EditIcon size={19} />
           </button>
@@ -142,20 +157,27 @@ export function ClientPage() {
             <CartIcon size={18} /> Agregar fiado
           </button>
         </div>
-      </section>
 
-      <div className="mb-5 grid grid-cols-2 gap-3">
-        <button
-          className="btn py-3 text-white shadow-sm"
-          style={{ backgroundColor: '#25D366' }}
-          onClick={() => sendMessage('summary')}
-        >
-          <WhatsappIcon size={18} /> Resumido
+        <div className="mt-3 border-t border-slate-100 pt-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Enviar por WhatsApp</p>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              className="btn py-3 text-white shadow-sm"
+              style={{ backgroundColor: '#25D366' }}
+              onClick={() => sendMessage('summary')}
+            >
+              <WhatsappIcon size={18} /> Resumido
+            </button>
+            <button className="btn-ghost py-3" onClick={() => sendMessage('full')}>
+              <WhatsappIcon size={18} /> Completo
+            </button>
+          </div>
+        </div>
+
+        <button className="btn-ghost mt-3 w-full py-3" onClick={() => setShowPicker(true)}>
+          <SwapIcon size={18} /> Cambiar cliente
         </button>
-        <button className="btn-ghost py-3" onClick={() => sendMessage('full')}>
-          <WhatsappIcon size={18} /> Completo
-        </button>
-      </div>
+      </section>
 
       <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Historial</h2>
       {movements.length === 0 ? (
@@ -185,7 +207,11 @@ export function ClientPage() {
                       {m.amount < 0 ? '−' : '+'}
                       {formatClp(Math.abs(m.amount))}
                     </span>
-                    <button className="icon-btn h-8 w-8 text-slate-300 hover:text-rose-500" onClick={() => setMovementToDelete(m)} aria-label="Eliminar">
+                    <button
+                      className="icon-btn h-8 w-8 text-slate-300 hover:text-rose-500"
+                      onClick={() => setMovementToDelete(m)}
+                      aria-label="Eliminar"
+                    >
                       <TrashIcon size={15} />
                     </button>
                   </li>
@@ -205,6 +231,12 @@ export function ClientPage() {
         onSaved={refresh}
       />
       <ClientFormModal open={showEdit} client={client as Client} onClose={() => setShowEdit(false)} onSaved={refresh} />
+      <ClientPickerModal
+        open={showPicker}
+        currentId={client.id}
+        onClose={() => setShowPicker(false)}
+        onSelect={(c) => navigate(`/clientes/${c.id}`)}
+      />
       <ConfirmDialog
         open={confirmDelete}
         title="Eliminar cliente"

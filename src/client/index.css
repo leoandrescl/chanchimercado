@@ -1,8 +1,16 @@
 @import 'tailwindcss';
 
+@theme {
+  --font-sans: 'Nunito Variable', 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
 :root {
   color-scheme: light;
-  --nav-h: 68px;
+  --nav-h: 72px;
+}
+
+html {
+  font-size: 17px;
 }
 
 html,
@@ -13,9 +21,30 @@ body,
 
 body {
   @apply bg-slate-100 text-slate-900 antialiased;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-sans);
   background-image: radial-gradient(1200px 600px at 50% -200px, #ecfdf5 0%, transparent 60%);
   background-repeat: no-repeat;
+}
+
+@keyframes cm-wave {
+  0%,
+  60%,
+  100% {
+    transform: rotate(0deg);
+  }
+  10%,
+  30% {
+    transform: rotate(16deg);
+  }
+  20%,
+  40% {
+    transform: rotate(-8deg);
+  }
+}
+.animate-wave {
+  display: inline-block;
+  transform-origin: 70% 70%;
+  animation: cm-wave 2.2s ease-in-out infinite;
 }
 
 .safe-bottom {
