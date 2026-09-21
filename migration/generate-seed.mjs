@@ -24,8 +24,7 @@ const n = (v) => (v === null || v === undefined ? 'NULL' : String(Math.trunc(Num
 const lines = [];
 lines.push('-- Datos migrados desde Supabase (respaldo 2026-09-21)');
 lines.push(`-- Clientes: ${debtors.length} | Movimientos: ${debts.length} | Productos: ${products.length}`);
-lines.push('PRAGMA foreign_keys = OFF;');
-lines.push('BEGIN TRANSACTION;');
+// Nota: D1 remoto no permite BEGIN TRANSACTION en archivos .sql.
 
 // 1. Clientes
 for (const d of debtors) {
@@ -77,9 +76,6 @@ for (const p of products) {
       `${q(p.id)}, ${q(p.name)}, ${n(p.price)}, ${q(category)}, NULL, ${n(p.is_visible === false ? 0 : 1)}, 0, ${n(order)}, ${q(p.created_at)}, ${q(p.updated_at || p.created_at)});`
   );
 }
-
-lines.push('COMMIT;');
-lines.push('PRAGMA foreign_keys = ON;');
 
 fs.writeFileSync(path.join(outDir, 'seed.sql'), lines.join('\n'), 'utf8');
 

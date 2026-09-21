@@ -3,6 +3,16 @@ import type { AppEnv } from '../types';
 
 const images = new Hono<AppEnv>();
 
+const MIME: Record<string, string> = {
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  webp: 'image/webp',
+  avif: 'image/avif',
+  gif: 'image/gif',
+  svg: 'image/svg+xml',
+};
+
 images.get('/*', async (c) => {
   const url = new URL(c.req.url);
   const prefix = '/api/images/';
@@ -10,14 +20,18 @@ images.get('/*', async (c) => {
   const key = decodeURIComponent(url.pathname.slice(idx + prefix.length));
   if (!key) return c.notFound();
 
-  const object = await c.env.IMAGES.get(key);
-  if (!object) return c.notFound();
+  const { value, metadata } = await c.env.IMAGES.getWithMetadata<{ contentType?: string }>(key, 'arrayBuffer');
+  if (!value) return c.notFound();
 
-  const headers = new Headers();
-  object.writeHttpMetadata(headers);
-  headers.set('etag', object.httpEtag);
-  headers.set('Cache-Control', 'public, max-age=31536000, immutable');
-  return new Response(object.body, { headers });
+  const ext = key.split('.').pop()?.toLowerCase() ?? '';
+  const contentType = metadata?.contentType || MIME[ext] || 'application/octet-stream';
+
+  return new Response(value, {
+    headers: {
+      'Content-Type': contentType,
+      'Cache-Control': 'public, max-age=31536000, immutable',
+    },
+  });
 });
 
 export default images;

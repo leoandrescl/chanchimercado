@@ -60,7 +60,7 @@ async function uploadImage(c: { env: AppEnv['Bindings'] }, file: File): Promise<
   const ext = (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '');
   const key = `products/${crypto.randomUUID()}.${ext}`;
   await c.env.IMAGES.put(key, await file.arrayBuffer(), {
-    httpMetadata: { contentType: file.type || 'application/octet-stream' },
+    metadata: { contentType: file.type || 'application/octet-stream' },
   });
   return key;
 }

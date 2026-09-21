@@ -10,7 +10,7 @@ Versión 2, pensada para ser **simple y confiable**, corriendo 100% en Cloudflar
 - **Cloudflare Workers** (runtime + static assets)
 - **Hono** (API)
 - **Cloudflare D1** (SQLite)
-- **Cloudflare R2** (fotos de productos)
+- **Cloudflare KV** (fotos de productos)
 - **React 19 + Vite + Tailwind v4** (SPA + PWA)
 
 ## Idea central: el saldo se calcula, no se guarda
@@ -44,7 +44,7 @@ npm run db:seed:local
 ```bash
 npx wrangler login
 npx wrangler d1 create chanchimercado          # copia el database_id a wrangler.jsonc
-npx wrangler r2 bucket create chanchimercado-images
+npx wrangler kv namespace create chanchimercado-images
 npx wrangler secret put APP_PIN
 npx wrangler secret put SESSION_SECRET
 npm run db:migrate:remote

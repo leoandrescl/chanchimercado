@@ -15,14 +15,14 @@
     {
       "binding": "DB",
       "database_name": "chanchimercado",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "eaa2f521-ddfe-4a51-a54c-61da0ba80aa2",
       "migrations_dir": "migrations"
     }
   ],
-  "r2_buckets": [
+  "kv_namespaces": [
     {
       "binding": "IMAGES",
-      "bucket_name": "chanchimercado-images"
+      "id": "55df952af1a5410dbad4dad436f550c2"
     }
   ],
   "vars": {
