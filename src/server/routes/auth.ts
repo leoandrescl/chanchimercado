@@ -20,6 +20,12 @@ function timingSafeEqual(a: string, b: string): boolean {
 }
 
 auth.post('/login', async (c) => {
+  const ip = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || 'unknown';
+  const { success } = await c.env.LOGIN_LIMITER.limit({ key: `login:${ip}` });
+  if (!success) {
+    return c.json({ error: 'Demasiados intentos. Espera un momento e intenta de nuevo.' }, 429);
+  }
+
   const body = (await c.req.json().catch(() => null)) as { pin?: unknown } | null;
   const pin = typeof body?.pin === 'string' ? body.pin : '';
   const expected = c.env.APP_PIN || '1549';

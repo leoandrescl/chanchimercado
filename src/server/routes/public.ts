@@ -44,6 +44,10 @@ const orderSchema = z.object({
 });
 
 publicRoutes.post('/orders', async (c) => {
+  const ip = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || 'unknown';
+  const { success } = await c.env.PUBLIC_LIMITER.limit({ key: `order:${ip}` });
+  if (!success) return c.json({ error: 'Demasiados pedidos. Intenta más tarde.' }, 429);
+
   const parsed = orderSchema.safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) return c.json({ error: 'Pedido inválido' }, 400);
 

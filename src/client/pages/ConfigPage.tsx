@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
+import { api } from '../lib/api';
 import { useToast } from '../lib/toast';
-import { BookIcon, DownloadIcon, LogoutIcon } from '../components/icons';
+import { BookIcon, DownloadIcon, LogoutIcon, SparkleIcon } from '../components/icons';
 
 export function ConfigPage() {
   const { logout } = useAuth();
@@ -30,6 +31,18 @@ export function ConfigPage() {
     }
   };
 
+  const cloudBackup = async () => {
+    setBusy(true);
+    try {
+      await api.post('/api/backup/run');
+      toast.show('Respaldo guardado en la nube', 'success');
+    } catch (err) {
+      toast.show(err instanceof Error ? err.message : 'Error', 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const doLogout = async () => {
     await logout();
     navigate('/login', { replace: true });
@@ -47,6 +60,16 @@ export function ConfigPage() {
           <span className="flex-1">
             <span className="block font-semibold text-slate-800">Descargar respaldo</span>
             <span className="block text-sm text-slate-500">Clientes, movimientos y productos (JSON)</span>
+          </span>
+        </button>
+
+        <button className="flex w-full items-center gap-3 px-4 py-4 text-left transition active:bg-slate-50" onClick={cloudBackup} disabled={busy}>
+          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-100 text-violet-700">
+            <SparkleIcon size={19} />
+          </span>
+          <span className="flex-1">
+            <span className="block font-semibold text-slate-800">Respaldar en la nube</span>
+            <span className="block text-sm text-slate-500">Guarda una copia ahora en Cloudflare</span>
           </span>
         </button>
 

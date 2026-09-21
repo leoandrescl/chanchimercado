@@ -23,8 +23,27 @@
     {
       "binding": "IMAGES",
       "id": "55df952af1a5410dbad4dad436f550c2"
+    },
+    {
+      "binding": "BACKUPS",
+      "id": "36539d20d01f4ef5845330c6d15647e4"
     }
   ],
+  "ratelimits": [
+    {
+      "name": "LOGIN_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 10, "period": 60 }
+    },
+    {
+      "name": "PUBLIC_LIMITER",
+      "namespace_id": "1002",
+      "simple": { "limit": 30, "period": 60 }
+    }
+  ],
+  "triggers": {
+    "crons": ["0 6 * * *"]
+  },
   "vars": {
     "APP_NAME": "ChanchiMercado"
   }
