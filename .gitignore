@@ -1,0 +1,21 @@
+node_modules/
+dist/
+.wrangler/
+.dev.vars
+.env
+.env.*
+!.env.example
+*.local
+.DS_Store
+*.tsbuildinfo
+worker-configuration.d.ts
+.vite/
+coverage/
+*.log
+.vite-dev.*
+
+# Datos reales de clientes: NUNCA subir al repositorio (es público)
+seed/seed.sql
+seed/product-images.json
+seed/*.sql
+seed/*.json
