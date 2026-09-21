@@ -13,13 +13,11 @@ export function LoginPage() {
 
   if (!loading && authed) return <Navigate to="/libreta" replace />;
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!pin) return;
+  const attempt = async (value: string) => {
     setBusy(true);
     setError('');
     try {
-      await login(pin);
+      await login(value);
       navigate('/libreta', { replace: true });
     } catch {
       setError('PIN incorrecto');
@@ -30,82 +28,84 @@ export function LoginPage() {
     }
   };
 
-  const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
   const press = (digit: string) => {
-    if (pin.length >= 6) return;
+    if (busy || pin.length >= 4) return;
     const next = pin + digit;
     setPin(next);
     setError('');
-    if (next.length === 4) {
-      setTimeout(() => {
-        login(next)
-          .then(() => navigate('/libreta', { replace: true }))
-          .catch(() => {
-            setError('PIN incorrecto');
-            setPin('');
-          });
-      }, 60);
-    }
+    if (next.length === 4) setTimeout(() => attempt(next), 90);
   };
+
+  const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
   return (
     <div className="flex min-h-full flex-col items-center justify-center px-6 py-10">
-      <div className="mb-8 text-center">
-        <div className="mb-3 text-5xl">🐷</div>
-        <h1 className="text-2xl font-bold text-slate-900">ChanchiMercado</h1>
-        <p className="mt-1 text-sm text-slate-500">Ingresa el PIN para continuar</p>
-      </div>
-
-      <form onSubmit={submit} className="w-full max-w-xs">
-        <div className={`mb-4 flex justify-center gap-3 ${error ? 'animate-pulse' : ''}`}>
-          {[0, 1, 2, 3].map((i) => (
-            <span
-              key={i}
-              className={`h-4 w-4 rounded-full ${pin.length > i ? 'bg-emerald-600' : 'bg-slate-300'}`}
-            />
-          ))}
+      <div className="w-full max-w-xs">
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-700 text-4xl shadow-lg shadow-emerald-900/20">
+            🐷
+          </div>
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">ChanchiMercado</h1>
+          <p className="mt-1 text-sm text-slate-500">Ingresa el PIN para continuar</p>
         </div>
 
-        <div className="mb-6 grid grid-cols-3 gap-3">
-          {keys.map((k) => (
+        <div className="card p-5">
+          <div className={`mb-5 flex justify-center gap-3 ${error ? 'animate-pulse' : ''}`}>
+            {[0, 1, 2, 3].map((i) => (
+              <span
+                key={i}
+                className={`h-4 w-4 rounded-full transition-colors ${
+                  error ? 'bg-rose-300' : pin.length > i ? 'bg-emerald-600' : 'bg-slate-200'
+                }`}
+              />
+            ))}
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            {keys.map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => press(k)}
+                className="rounded-2xl bg-slate-50 py-4 text-xl font-bold text-slate-800 ring-1 ring-slate-100 transition active:scale-95 active:bg-slate-100"
+              >
+                {k}
+              </button>
+            ))}
             <button
-              key={k}
               type="button"
-              onClick={() => press(k)}
-              className="rounded-2xl bg-white py-4 text-xl font-semibold text-slate-800 shadow-sm ring-1 ring-slate-200 transition active:scale-95"
+              onClick={() => {
+                setPin('');
+                setError('');
+              }}
+              className="rounded-2xl bg-slate-100 py-4 text-xs font-semibold text-slate-500 active:scale-95"
             >
-              {k}
+              Borrar
             </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => setPin('')}
-            className="rounded-2xl bg-slate-200 py-4 text-sm font-semibold text-slate-600 active:scale-95"
-          >
-            Borrar
-          </button>
-          <button
-            type="button"
-            onClick={() => press('0')}
-            className="rounded-2xl bg-white py-4 text-xl font-semibold text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-95"
-          >
-            0
-          </button>
-          <button
-            type="submit"
-            disabled={busy || pin.length === 0}
-            className="rounded-2xl bg-emerald-600 py-4 text-sm font-semibold text-white active:scale-95 disabled:opacity-50"
-          >
-            {busy ? '...' : 'Entrar'}
-          </button>
+            <button
+              type="button"
+              onClick={() => press('0')}
+              className="rounded-2xl bg-slate-50 py-4 text-xl font-bold text-slate-800 ring-1 ring-slate-100 active:scale-95 active:bg-slate-100"
+            >
+              0
+            </button>
+            <button
+              type="button"
+              disabled={busy || pin.length === 0}
+              onClick={() => attempt(pin)}
+              className="rounded-2xl bg-emerald-600 py-4 text-sm font-bold text-white active:scale-95 disabled:opacity-50"
+            >
+              {busy ? '...' : 'Entrar'}
+            </button>
+          </div>
+
+          {error && <p className="mt-4 text-center text-sm font-semibold text-rose-600">{error}</p>}
         </div>
 
-        {error && <p className="text-center text-sm font-medium text-rose-600">{error}</p>}
-      </form>
-
-      <a href="/catalogo" className="mt-10 text-sm font-medium text-emerald-700">
-        Ver catálogo público
-      </a>
+        <a href="/catalogo" className="mt-6 block text-center text-sm font-semibold text-emerald-700">
+          Ver catálogo público →
+        </a>
+      </div>
     </div>
   );
 }

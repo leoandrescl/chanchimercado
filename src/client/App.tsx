@@ -13,7 +13,7 @@ import { CatalogoPage } from './pages/CatalogoPage';
 function Splash() {
   return (
     <div className="flex h-full items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
+      <div className="h-9 w-9 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
     </div>
   );
 }
@@ -41,11 +41,27 @@ export function App() {
         <Route path="/" element={<Navigate to="/libreta" replace />} />
         <Route path="/libreta" element={<LibretaPage />} />
         <Route path="/clientes/:id" element={<ClientPage />} />
-        <Route path="/pos" element={<PosPage />} />
-        <Route path="/pos/:clientId" element={<PosPage />} />
         <Route path="/inventario" element={<InventarioPage />} />
         <Route path="/config" element={<ConfigPage />} />
       </Route>
+
+      {/* POS a pantalla completa (sin nav inferior) para no tapar el carrito */}
+      <Route
+        path="/pos"
+        element={
+          <Protected>
+            <PosPage />
+          </Protected>
+        }
+      />
+      <Route
+        path="/pos/:clientId"
+        element={
+          <Protected>
+            <PosPage />
+          </Protected>
+        }
+      />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

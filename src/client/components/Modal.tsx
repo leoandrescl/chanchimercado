@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { CloseIcon } from './icons';
 
 interface ModalProps {
   open: boolean;
@@ -25,20 +26,22 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50 sm:items-center" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex animate-fade-in items-end justify-center bg-slate-900/50 backdrop-blur-sm sm:items-center"
+      onClick={onClose}
+    >
       <div
-        className="flex max-h-[92vh] w-full max-w-md flex-col rounded-t-3xl bg-white shadow-xl sm:rounded-3xl"
+        className="flex max-h-[92vh] w-full max-w-md animate-slide-up flex-col rounded-t-[28px] bg-white shadow-2xl sm:rounded-[28px]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-          <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100" aria-label="Cerrar">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 6 6 18M6 6l12 12" />
-            </svg>
+        <div className="mx-auto mt-2.5 h-1.5 w-12 rounded-full bg-slate-200 sm:hidden" />
+        <div className="flex items-center justify-between px-5 pb-3 pt-3.5">
+          <h2 className="text-lg font-bold text-slate-900">{title}</h2>
+          <button onClick={onClose} className="icon-btn" aria-label="Cerrar">
+            <CloseIcon size={20} />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+        <div className="flex-1 overflow-y-auto px-5 pb-2">{children}</div>
         {footer && <div className="safe-bottom border-t border-slate-100 px-5 py-4">{footer}</div>}
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import { CheckIcon, CloseIcon, SparkleIcon } from '../components/icons';
 
 type ToastKind = 'success' | 'error' | 'info';
 interface Toast {
@@ -13,6 +14,12 @@ interface ToastContextValue {
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
+const styles: Record<ToastKind, { bg: string; Icon: typeof CheckIcon }> = {
+  success: { bg: 'bg-emerald-600', Icon: CheckIcon },
+  error: { bg: 'bg-rose-600', Icon: CloseIcon },
+  info: { bg: 'bg-slate-800', Icon: SparkleIcon },
+};
+
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
@@ -22,24 +29,24 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3200);
   }, []);
 
-  const colors: Record<ToastKind, string> = {
-    success: 'bg-emerald-600',
-    error: 'bg-rose-600',
-    info: 'bg-slate-800',
-  };
-
   return (
     <ToastContext.Provider value={{ show }}>
       {children}
       <div className="pointer-events-none fixed inset-x-0 top-3 z-[60] flex flex-col items-center gap-2 px-4">
-        {toasts.map((t) => (
-          <div
-            key={t.id}
-            className={`pointer-events-auto w-full max-w-sm rounded-xl px-4 py-3 text-center text-sm font-medium text-white shadow-lg ${colors[t.kind]}`}
-          >
-            {t.message}
-          </div>
-        ))}
+        {toasts.map((t) => {
+          const { bg, Icon } = styles[t.kind];
+          return (
+            <div
+              key={t.id}
+              className={`pointer-events-auto flex w-full max-w-sm animate-slide-up items-center gap-2.5 rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow-xl ${bg}`}
+            >
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20">
+                <Icon size={15} />
+              </span>
+              {t.message}
+            </div>
+          );
+        })}
       </div>
     </ToastContext.Provider>
   );

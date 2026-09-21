@@ -5,6 +5,7 @@ import { formatClp } from '../lib/format';
 import { ProductFormModal } from '../components/ProductFormModal';
 import { ConfirmDialog } from '../components/Modal';
 import { useToast } from '../lib/toast';
+import { ArrowDownIcon, ArrowUpIcon, BoxIcon, EditIcon, EyeIcon, EyeOffIcon, PlusIcon, TrashIcon } from '../components/icons';
 import type { Product } from '@shared/types';
 
 export function InventarioPage() {
@@ -55,63 +56,77 @@ export function InventarioPage() {
     }
   };
 
+  const visibles = products.filter((p) => p.is_visible).length;
+
   return (
     <div className="px-4 pt-5">
       <header className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Productos</h1>
-          <p className="text-sm text-slate-500">{products.length} en el catálogo</p>
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Productos</h1>
+          <p className="text-sm text-slate-500">
+            {products.length} en total · {visibles} visibles
+          </p>
         </div>
         <button
-          className="btn-primary"
+          className="btn-primary px-3.5 py-2.5"
           onClick={() => {
             setEditing(undefined);
             setShowForm(true);
           }}
         >
-          + Producto
+          <PlusIcon size={18} /> Nuevo
         </button>
       </header>
 
       {isLoading ? (
-        <p className="py-10 text-center text-slate-400">Cargando...</p>
+        <div className="space-y-2">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="card h-[68px] animate-pulse bg-white/60" />
+          ))}
+        </div>
       ) : products.length === 0 ? (
-        <p className="py-10 text-center text-slate-400">Aún no hay productos</p>
+        <div className="card flex flex-col items-center gap-2 py-16 text-slate-400">
+          <BoxIcon size={40} />
+          <p>Aún no hay productos</p>
+        </div>
       ) : (
         <ul className="space-y-2">
           {products.map((p, i) => (
             <li key={p.id} className="card flex items-center gap-3 p-3">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
-                {p.image_url ? <img src={p.image_url} alt="" className="h-full w-full object-cover" /> : <span className="text-xl">🛒</span>}
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-50">
+                {p.image_url ? <img src={p.image_url} alt="" className="h-full w-full object-cover" /> : <span className="text-xl opacity-40">🛒</span>}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-slate-800">{p.name}</p>
+                <p className="truncate font-semibold text-slate-800">{p.name}</p>
                 <p className="text-sm text-slate-500">{p.is_free_amount ? 'Monto libre' : formatClp(p.price)}</p>
               </div>
-              <div className="flex shrink-0 items-center gap-1">
-                <button className="rounded-lg px-2 py-1 text-slate-400" onClick={() => move(i, -1)} aria-label="Subir">
-                  ↑
+
+              <div className="flex shrink-0 items-center gap-0.5">
+                <button className="icon-btn h-9 w-9" onClick={() => move(i, -1)} aria-label="Subir">
+                  <ArrowUpIcon size={16} />
                 </button>
-                <button className="rounded-lg px-2 py-1 text-slate-400" onClick={() => move(i, 1)} aria-label="Bajar">
-                  ↓
+                <button className="icon-btn h-9 w-9" onClick={() => move(i, 1)} aria-label="Bajar">
+                  <ArrowDownIcon size={16} />
                 </button>
                 <button
-                  className={`rounded-lg px-2 py-1 text-xs font-semibold ${p.is_visible ? 'text-emerald-600' : 'text-slate-400'}`}
+                  className={`icon-btn h-9 w-9 ${p.is_visible ? 'text-emerald-600' : 'text-slate-300'}`}
                   onClick={() => toggleVisible(p)}
+                  aria-label="Visibilidad"
                 >
-                  {p.is_visible ? 'Visible' : 'Oculto'}
+                  {p.is_visible ? <EyeIcon size={17} /> : <EyeOffIcon size={17} />}
                 </button>
                 <button
-                  className="rounded-lg px-2 py-1 text-sm text-slate-500"
+                  className="icon-btn h-9 w-9"
                   onClick={() => {
                     setEditing(p);
                     setShowForm(true);
                   }}
+                  aria-label="Editar"
                 >
-                  Editar
+                  <EditIcon size={17} />
                 </button>
-                <button className="rounded-lg px-2 py-1 text-sm text-rose-500" onClick={() => setToDelete(p)}>
-                  ✕
+                <button className="icon-btn h-9 w-9 text-rose-500" onClick={() => setToDelete(p)} aria-label="Eliminar">
+                  <TrashIcon size={17} />
                 </button>
               </div>
             </li>
