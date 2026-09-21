@@ -21,6 +21,15 @@ body {
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }
+.safe-bottom-3 {
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+}
+.safe-bottom-4 {
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+}
+.safe-bottom-5 {
+  padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+}
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;

@@ -4,7 +4,7 @@ import { cn } from '../lib/cn';
 
 const links = [
   { to: '/libreta', label: 'Libreta', Icon: BookIcon },
-  { to: '/pos', label: 'Fiado', Icon: CartIcon },
+  { to: '/fiado', label: 'Fiado', Icon: CartIcon },
   { to: '/inventario', label: 'Productos', Icon: BoxIcon },
   { to: '/config', label: 'Ajustes', Icon: GearIcon },
 ];

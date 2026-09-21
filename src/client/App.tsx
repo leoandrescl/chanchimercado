@@ -6,6 +6,7 @@ import { LoginPage } from './pages/LoginPage';
 import { LibretaPage } from './pages/LibretaPage';
 import { ClientPage } from './pages/ClientPage';
 import { PosPage } from './pages/PosPage';
+import { FiadoPage } from './pages/FiadoPage';
 import { InventarioPage } from './pages/InventarioPage';
 import { ConfigPage } from './pages/ConfigPage';
 import { CatalogoPage } from './pages/CatalogoPage';
@@ -47,13 +48,14 @@ export function App() {
 
       {/* POS a pantalla completa (sin nav inferior) para no tapar el carrito */}
       <Route
-        path="/pos"
+        path="/fiado"
         element={
           <Protected>
-            <PosPage />
+            <FiadoPage />
           </Protected>
         }
       />
+      <Route path="/pos" element={<Navigate to="/fiado" replace />} />
       <Route
         path="/pos/:clientId"
         element={

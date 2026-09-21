@@ -134,7 +134,7 @@ export function CatalogoPage() {
       )}
 
       {cart.length > 0 && (
-        <div className="safe-bottom fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-xl">
+        <div className="safe-bottom-3 fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white/95 px-4 pt-3 backdrop-blur-xl">
           <div className="mx-auto max-w-2xl">
             <div className="mb-2 max-h-40 space-y-2 overflow-y-auto">
               {cart.map((item) => (

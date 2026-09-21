@@ -5,7 +5,7 @@ import { api } from '../lib/api';
 import { formatClp } from '../lib/format';
 import { Avatar } from '../components/Avatar';
 import { ClientFormModal } from '../components/ClientFormModal';
-import { ChevronRightIcon, SearchIcon, UserPlusIcon, WhatsappIcon } from '../components/icons';
+import { ChevronRightIcon, EyeIcon, EyeOffIcon, SearchIcon, UserPlusIcon, WhatsappIcon } from '../components/icons';
 import type { Client } from '@shared/types';
 
 function greeting(): string {
@@ -18,6 +18,15 @@ function greeting(): string {
 export function LibretaPage() {
   const [query, setQuery] = useState('');
   const [showNew, setShowNew] = useState(false);
+  const [showTotal, setShowTotal] = useState(() => localStorage.getItem('cm_show_total') === '1');
+
+  const toggleTotal = () => {
+    setShowTotal((prev) => {
+      const next = !prev;
+      localStorage.setItem('cm_show_total', next ? '1' : '0');
+      return next;
+    });
+  };
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['clients'],
@@ -51,8 +60,19 @@ export function LibretaPage() {
       <section className="animate-slide-up relative mb-4 overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-700 p-5 text-white shadow-lg shadow-emerald-900/10">
         <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/10" />
         <div className="pointer-events-none absolute -bottom-12 -left-6 h-28 w-28 rounded-full bg-white/5" />
-        <p className="text-sm font-medium text-emerald-50/90">Total por cobrar</p>
-        <p className="mt-1 text-4xl font-extrabold tracking-tight">{formatClp(total)}</p>
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium text-emerald-50/90">Total por cobrar</p>
+          <button
+            onClick={toggleTotal}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white transition active:scale-90"
+            aria-label={showTotal ? 'Ocultar total' : 'Mostrar total'}
+          >
+            {showTotal ? <EyeOffIcon size={17} /> : <EyeIcon size={17} />}
+          </button>
+        </div>
+        <p className="mt-1 text-4xl font-extrabold tracking-tight">
+          {showTotal ? formatClp(total) : '$ ******'}
+        </p>
         <div className="mt-4 flex gap-2 text-xs font-semibold">
           <span className="chip bg-white/15 text-white">
             <span className="h-1.5 w-1.5 rounded-full bg-amber-300" /> {debtors.length} con deuda

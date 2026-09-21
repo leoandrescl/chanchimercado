@@ -6,7 +6,7 @@ import { formatClp } from '../lib/format';
 import { Modal } from '../components/Modal';
 import { Avatar } from '../components/Avatar';
 import { useToast } from '../lib/toast';
-import { BackIcon, CartIcon, CheckIcon, SearchIcon } from '../components/icons';
+import { BackIcon, CartIcon, CheckIcon, CloseIcon, SearchIcon } from '../components/icons';
 import type { CartItem, Client, Product } from '@shared/types';
 
 export function PosPage() {
@@ -62,6 +62,8 @@ export function PosPage() {
       return [...prev, { productId: p.id, name: p.name, price: p.price, quantity: 1 }];
     });
   };
+
+  const removeItem = (productId: string) => setCart((prev) => prev.filter((i) => i.productId !== productId));
 
   const setQty = (productId: string, qty: number) => {
     setCart((prev) =>
@@ -201,7 +203,7 @@ export function PosPage() {
       </div>
 
       {cart.length > 0 && (
-        <div className="safe-bottom z-30 border-t border-slate-200 bg-white px-3 pb-3 pt-2 shadow-[0_-8px_30px_-12px_rgba(15,23,42,0.25)]">
+        <div className="safe-bottom-3 z-30 border-t border-slate-200 bg-white px-3 pt-2 shadow-[0_-8px_30px_-12px_rgba(15,23,42,0.25)]">
           <div className="mx-auto mb-1 h-1 w-10 rounded-full bg-slate-200" />
           <div className="max-h-44 space-y-2 overflow-y-auto py-1">
             {cart.map((item) => (
@@ -227,6 +229,13 @@ export function PosPage() {
                     +
                   </button>
                 </div>
+                <button
+                  className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-300 transition hover:bg-rose-50 hover:text-rose-500"
+                  onClick={() => removeItem(item.productId)}
+                  aria-label="Quitar del carrito"
+                >
+                  <CloseIcon size={15} />
+                </button>
               </div>
             ))}
           </div>

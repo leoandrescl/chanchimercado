@@ -35,14 +35,14 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto mt-2.5 h-1.5 w-12 rounded-full bg-slate-200 sm:hidden" />
-        <div className="flex items-center justify-between px-5 pb-3 pt-3.5">
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 pb-3.5 pt-3.5">
           <h2 className="text-lg font-bold text-slate-900">{title}</h2>
           <button onClick={onClose} className="icon-btn" aria-label="Cerrar">
             <CloseIcon size={20} />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto px-5 pb-2">{children}</div>
-        {footer && <div className="safe-bottom border-t border-slate-100 px-5 py-4">{footer}</div>}
+        <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+        {footer && <div className="safe-bottom-4 border-t border-slate-100 px-5 pt-4">{footer}</div>}
       </div>
     </div>
   );
