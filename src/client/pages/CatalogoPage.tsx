@@ -117,11 +117,11 @@ export function CatalogoPage() {
         <div className="grid grid-cols-2 gap-3 px-4 sm:grid-cols-3">
           {filtered.map((p) => (
             <button key={p.id} onClick={() => add(p)} className="card overflow-hidden text-left transition active:scale-[0.97]">
-              <div className="flex h-28 items-center justify-center bg-slate-50">
+              <div className="flex aspect-square w-full items-center justify-center bg-slate-50">
                 {p.image_url ? (
                   <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" loading="lazy" />
                 ) : (
-                  <span className="text-3xl opacity-40">🛒</span>
+                  <span className="text-4xl opacity-40">🛒</span>
                 )}
               </div>
               <div className="p-2.5">

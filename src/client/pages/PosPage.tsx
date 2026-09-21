@@ -180,7 +180,7 @@ export function PosPage() {
                 onClick={() => addProduct(p)}
                 className="card group overflow-hidden text-left transition active:scale-[0.97]"
               >
-                <div className="relative flex h-24 items-center justify-center bg-slate-50">
+                <div className="relative flex aspect-square w-full items-center justify-center bg-slate-50">
                   {p.image_url ? (
                     <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" loading="lazy" />
                   ) : (
