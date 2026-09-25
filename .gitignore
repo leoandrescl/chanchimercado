@@ -15,6 +15,7 @@ coverage/
 .vite-dev.*
 
 # Datos reales de clientes: NUNCA subir al repositorio (es público)
+chanchi-respaldo-*.json
 seed/seed.sql
 seed/product-images.json
 seed/*.sql
