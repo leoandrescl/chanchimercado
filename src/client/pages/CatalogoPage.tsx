@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { formatClp } from '../lib/format';
 import { buildOrderMessage, orderWhatsappLink } from '../lib/whatsapp';
 import { SearchIcon, WhatsappIcon } from '../components/icons';
+import { CartPanel } from '../components/CartPanel';
 import type { Product } from '@shared/types';
 
 interface Line {
@@ -27,6 +28,22 @@ export function CatalogoPage() {
     () => [...new Set(products.map((p) => p.category).filter((c): c is string => !!c))],
     [products]
   );
+
+  // Barra de categorias: scroll horizontal con flechas (en escritorio no hay swipe).
+  const filterBarRef = useRef<HTMLDivElement>(null);
+  const [canScrollFilters, setCanScrollFilters] = useState({ left: false, right: false });
+  const updateFilterScroll = useCallback(() => {
+    const el = filterBarRef.current;
+    if (!el) return;
+    setCanScrollFilters({
+      left: el.scrollLeft > 4,
+      right: el.scrollLeft + el.clientWidth < el.scrollWidth - 4,
+    });
+  }, []);
+  useEffect(updateFilterScroll, [updateFilterScroll, categories]);
+  const scrollFilters = (dir: -1 | 1) => {
+    filterBarRef.current?.scrollBy({ left: dir * 260, behavior: 'smooth' });
+  };
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -83,22 +100,51 @@ export function CatalogoPage() {
       </header>
 
       {categories.length > 0 && (
-        <div className="no-scrollbar flex gap-2 overflow-x-auto px-4 py-3">
-          <button
-            className={`chip shrink-0 ${!category ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200'}`}
-            onClick={() => setCategory('')}
+        <div className="relative flex items-center">
+          <div
+            ref={filterBarRef}
+            onScroll={updateFilterScroll}
+            className="no-scrollbar flex w-full gap-2 overflow-x-auto px-4 py-3"
           >
-            Todos
-          </button>
-          {categories.map((c) => (
             <button
-              key={c}
-              className={`chip shrink-0 ${category === c ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200'}`}
-              onClick={() => setCategory(c)}
+              className={`chip shrink-0 ${!category ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200'}`}
+              onClick={() => setCategory('')}
             >
-              {c}
+              Todos
             </button>
-          ))}
+            {categories.map((c) => (
+              <button
+                key={c}
+                className={`chip shrink-0 ${category === c ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200'}`}
+                onClick={() => setCategory(c)}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+          {/* Desvanecidos que indican que hay mas categorias fuera de vista */}
+          <div
+            className={`pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-slate-100 to-transparent transition-opacity ${canScrollFilters.left ? 'opacity-100' : 'opacity-0'}`}
+          />
+          <div
+            className={`pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-slate-100 to-transparent transition-opacity ${canScrollFilters.right ? 'opacity-100' : 'opacity-0'}`}
+          />
+          <button
+            type="button"
+            aria-label="Categorías anteriores"
+            onClick={() => scrollFilters(-1)}
+            className={`absolute left-1 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white text-lg font-bold text-slate-600 shadow-md ring-1 ring-slate-200 transition active:scale-95 ${canScrollFilters.left ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            aria-label="Más categorías"
+            onClick={() => scrollFilters(1)}
+            className={`absolute right-1 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white text-lg font-bold text-slate-600 shadow-md ring-1 ring-slate-200 transition active:scale-95 ${canScrollFilters.right ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+          >
+            ›
+          </button>
         </div>
       )}
 
@@ -134,29 +180,17 @@ export function CatalogoPage() {
       )}
 
       {cart.length > 0 && (
-        <div className="safe-bottom-3 fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white/95 px-4 pt-3 backdrop-blur-xl">
-          <div className="mx-auto max-w-2xl">
-            <div className="mb-2 max-h-40 space-y-2 overflow-y-auto">
-              {cart.map((item) => (
-                <div key={item.name} className="flex items-center gap-2">
-                  <span className="flex-1 truncate text-sm font-medium text-slate-700">{item.name}</span>
-                  <span className="text-sm text-slate-500">{formatClp(item.price)}</span>
-                  <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-0.5">
-                    <button className="h-7 w-7 rounded-lg font-bold text-slate-600" onClick={() => setQty(item.name, item.quantity - 1)}>
-                      −
-                    </button>
-                    <span className="w-6 text-center text-sm font-semibold">{item.quantity}</span>
-                    <button className="h-7 w-7 rounded-lg font-bold text-slate-600" onClick={() => setQty(item.name, item.quantity + 1)}>
-                      +
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+        <div className="fixed inset-x-0 bottom-0 z-20">
+          <CartPanel
+            wrapperClassName="mx-auto max-w-2xl"
+            items={cart.map((i) => ({ key: i.name, name: i.name, price: i.price, quantity: i.quantity }))}
+            onQty={(name, qty) => setQty(name, qty)}
+            onRemove={(name) => setQty(name, 0)}
+          >
             <button className="btn w-full py-3.5 text-base text-white shadow-sm" style={{ backgroundColor: '#25D366' }} onClick={order}>
               <WhatsappIcon size={20} /> Pedir por WhatsApp · {formatClp(total)}
             </button>
-          </div>
+          </CartPanel>
         </div>
       )}
     </div>

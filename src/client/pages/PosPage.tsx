@@ -5,8 +5,9 @@ import { api } from '../lib/api';
 import { formatClp } from '../lib/format';
 import { Modal } from '../components/Modal';
 import { Avatar } from '../components/Avatar';
+import { CartPanel } from '../components/CartPanel';
 import { useToast } from '../lib/toast';
-import { BackIcon, CartIcon, CheckIcon, CloseIcon, SearchIcon } from '../components/icons';
+import { BackIcon, CartIcon, CheckIcon, SearchIcon } from '../components/icons';
 import type { CartItem, Client, Product } from '@shared/types';
 
 export function PosPage() {
@@ -203,50 +204,26 @@ export function PosPage() {
       </div>
 
       {cart.length > 0 && (
-        <div className="safe-bottom-3 z-30 border-t border-slate-200 bg-white px-3 pt-2 shadow-[0_-8px_30px_-12px_rgba(15,23,42,0.25)]">
-          <div className="mx-auto mb-1 h-1 w-10 rounded-full bg-slate-200" />
-          <div className="max-h-56 space-y-2.5 overflow-y-auto py-1">
-            {cart.map((item) => (
-              <div key={item.productId} className="flex items-center gap-2.5">
-                <span className="flex-1 truncate text-base font-semibold text-slate-700">{item.name}</span>
-                {item.price === 0 ? (
-                  <input
-                    className="w-28 rounded-xl bg-slate-100 px-2.5 py-2 text-right text-base font-semibold"
-                    placeholder="Monto"
-                    inputMode="numeric"
-                    autoFocus
-                    onChange={(e) => setPrice(item.productId, Number(e.target.value.replace(/\D/g, '')) || 0)}
-                  />
-                ) : (
-                  <span className="text-base font-semibold text-slate-500">{formatClp(item.price)}</span>
-                )}
-                <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1">
-                  <button className="h-9 w-9 rounded-lg text-lg font-bold text-slate-600" onClick={() => setQty(item.productId, item.quantity - 1)}>
-                    −
-                  </button>
-                  <span className="w-8 text-center text-base font-bold">{item.quantity}</span>
-                  <button className="h-9 w-9 rounded-lg text-lg font-bold text-slate-600" onClick={() => setQty(item.productId, item.quantity + 1)}>
-                    +
-                  </button>
-                </div>
-                <button
-                  className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-300 transition hover:bg-rose-50 hover:text-rose-500"
-                  onClick={() => removeItem(item.productId)}
-                  aria-label="Quitar del carrito"
-                >
-                  <CloseIcon size={18} />
-                </button>
-              </div>
-            ))}
-          </div>
-          <button className="btn-primary mt-3 w-full py-4 text-lg" onClick={checkout} disabled={busy}>
+        <CartPanel
+          items={cart.map((i) => ({
+            key: i.productId,
+            name: i.name,
+            price: i.price,
+            quantity: i.quantity,
+            editablePrice: i.price === 0,
+          }))}
+          onQty={setQty}
+          onRemove={removeItem}
+          onPrice={setPrice}
+        >
+          <button className="btn-primary w-full py-4 text-lg" onClick={checkout} disabled={busy}>
             {busy ? 'Registrando...' : (
               <>
                 <CheckIcon size={20} /> Registrar fiado · {formatClp(total)}
               </>
             )}
           </button>
-        </div>
+        </CartPanel>
       )}
 
       <Modal open={pickerOpen} title="Seleccionar cliente" onClose={() => setPickerOpen(false)}>
