@@ -21,3 +21,6 @@ seed/product-images.json
 seed/*.sql
 seed/*.json
 migration/out/
+
+# Artefactos del pipeline de imagenes (pesados, ya viven en KV)
+migration/img-out/
