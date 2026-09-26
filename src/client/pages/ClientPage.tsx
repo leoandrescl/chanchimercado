@@ -55,6 +55,7 @@ export function ClientPage() {
   const [showEdit, setShowEdit] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmClearHistory, setConfirmClearHistory] = useState(false);
   const [movementToDelete, setMovementToDelete] = useState<Movement | null>(null);
 
   const { data, isLoading } = useQuery({
@@ -113,6 +114,16 @@ export function ClientPage() {
       navigate('/libreta');
     } catch (err) {
       toast.show(err instanceof Error ? err.message : 'No se pudo eliminar', 'error');
+    }
+  };
+
+  const clearHistory = async () => {
+    try {
+      await api.del(`/api/clients/${client.id}/movements`);
+      toast.show('Historial borrado', 'success');
+      refresh();
+    } catch (err) {
+      toast.show(err instanceof Error ? err.message : 'No se pudo borrar el historial', 'error');
     }
   };
 
@@ -179,7 +190,17 @@ export function ClientPage() {
         </button>
       </section>
 
-      <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Historial</h2>
+      <div className="mb-2 flex items-center justify-between">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Historial</h2>
+        {movements.length > 0 && (
+          <button
+            className="btn-ghost px-2 py-1 text-xs text-slate-400 hover:text-rose-500"
+            onClick={() => setConfirmClearHistory(true)}
+          >
+            <TrashIcon size={13} /> Borrar todo
+          </button>
+        )}
+      </div>
       {movements.length === 0 ? (
         <div className="card flex flex-col items-center gap-1 py-10 text-slate-400">
           <ReceiptIcon size={32} />
@@ -245,6 +266,19 @@ export function ClientPage() {
         destructive
         onConfirm={deleteClient}
         onClose={() => setConfirmDelete(false)}
+      />
+      <ConfirmDialog
+        open={confirmClearHistory}
+        title="Borrar historial"
+        message={
+          client.balance > 0
+            ? `¿Borrar todo el historial de ${client.name}? Se eliminarán ${movements.length} movimientos y su deuda de ${formatClp(client.balance)} quedará en $0. Esta acción no se puede deshacer.`
+            : `¿Borrar todo el historial de ${client.name}? Se eliminarán ${movements.length} movimientos. Esta acción no se puede deshacer.`
+        }
+        confirmLabel="Borrar historial"
+        destructive
+        onConfirm={clearHistory}
+        onClose={() => setConfirmClearHistory(false)}
       />
       <ConfirmDialog
         open={!!movementToDelete}

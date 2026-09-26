@@ -192,6 +192,30 @@ clients.patch('/:id', async (c) => {
   return c.json({ ok: true });
 });
 
+clients.delete('/:id/movements', async (c) => {
+  const id = c.req.param('id');
+  const client = await c.env.DB.prepare(`SELECT name FROM clients WHERE id = ?`).bind(id).first<{ name: string }>();
+  if (!client) return c.json({ error: 'Cliente no encontrado' }, 404);
+
+  const stats = await c.env.DB.prepare(
+    `SELECT COUNT(*) AS count, COALESCE(SUM(amount), 0) AS balance FROM movements WHERE client_id = ?`
+  )
+    .bind(id)
+    .first<{ count: number; balance: number }>();
+
+  const count = stats?.count ?? 0;
+  if (count > 0) {
+    await c.env.DB.prepare(`DELETE FROM movements WHERE client_id = ?`).bind(id).run();
+    await logActivity(c.env.DB, {
+      type: 'CLIENT_HISTORY_CLEAR',
+      entity: 'movements',
+      entityId: id,
+      details: { clientId: id, name: client.name, deletedCount: count, erasedBalance: stats?.balance ?? 0 },
+    });
+  }
+  return c.json({ ok: true, deleted: count, balance: 0 });
+});
+
 clients.delete('/:id', async (c) => {
   const id = c.req.param('id');
   const existing = await c.env.DB.prepare(`SELECT name FROM clients WHERE id = ?`).bind(id).first<{ name: string }>();
