@@ -45,7 +45,7 @@ export function ConfigPage() {
 
   const doLogout = async () => {
     await logout();
-    navigate('/login', { replace: true });
+    navigate('/', { replace: true });
   };
 
   return (

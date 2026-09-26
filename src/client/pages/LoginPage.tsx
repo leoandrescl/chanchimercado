@@ -101,10 +101,6 @@ export function LoginPage() {
 
           {error && <p className="mt-4 text-center text-sm font-semibold text-rose-600">{error}</p>}
         </div>
-
-        <a href="/catalogo" className="mt-6 block text-center text-sm font-semibold text-emerald-700">
-          Ver catálogo público →
-        </a>
       </div>
     </div>
   );

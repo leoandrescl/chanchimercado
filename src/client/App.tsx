@@ -22,15 +22,17 @@ function Splash() {
 function Protected({ children }: { children: ReactNode }) {
   const { authed, loading } = useAuth();
   if (loading) return <Splash />;
-  if (!authed) return <Navigate to="/login" replace />;
+  if (!authed) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
 export function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
+      {/* Acceso solo por URL secreta (sin enlaces desde el sitio publico) */}
+      <Route path="/acceso-total-chanchi" element={<LoginPage />} />
       <Route path="/catalogo" element={<CatalogoPage />} />
+      <Route path="/" element={<Navigate to="/catalogo" replace />} />
 
       <Route
         element={
@@ -39,7 +41,6 @@ export function App() {
           </Protected>
         }
       >
-        <Route path="/" element={<Navigate to="/libreta" replace />} />
         <Route path="/libreta" element={<LibretaPage />} />
         <Route path="/clientes/:id" element={<ClientPage />} />
         <Route path="/inventario" element={<InventarioPage />} />
