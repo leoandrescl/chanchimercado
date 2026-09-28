@@ -66,7 +66,7 @@ export function CartPanel({ items, wrapperClassName = '', onQty, onRemove, onPri
               </button>
             </div>
             <button
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-300 ring-1 ring-transparent transition hover:bg-rose-50 hover:text-rose-500 hover:ring-rose-200 active:scale-90"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-400 ring-1 ring-rose-100 transition hover:bg-rose-500 hover:text-white hover:ring-rose-500 active:scale-90 active:bg-rose-600"
               onClick={() => onRemove(item.key)}
               aria-label="Quitar del carrito"
             >

@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { formatClp } from '../lib/format';
 import { ProductFormModal } from '../components/ProductFormModal';
 import { ConfirmDialog } from '../components/Modal';
 import { useToast } from '../lib/toast';
-import { ArrowDownIcon, ArrowUpIcon, BoxIcon, EditIcon, EyeIcon, EyeOffIcon, PlusIcon, TrashIcon } from '../components/icons';
+import { ArrowDownIcon, ArrowUpIcon, BoxIcon, EditIcon, EyeIcon, EyeOffIcon, PlusIcon, SearchIcon, TrashIcon } from '../components/icons';
 import type { Product } from '@shared/types';
 
 export function InventarioPage() {
@@ -14,6 +14,7 @@ export function InventarioPage() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Product | undefined>();
   const [toDelete, setToDelete] = useState<Product | null>(null);
+  const [search, setSearch] = useState('');
 
   const { data, isLoading } = useQuery({
     queryKey: ['products'],
@@ -58,6 +59,14 @@ export function InventarioPage() {
 
   const visibles = products.filter((p) => p.is_visible).length;
 
+  // Busqueda en vivo: filtra mientras se escribe (nombre o categoria).
+  const filtering = search.trim().length > 0;
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return products;
+    return products.filter((p) => p.name.toLowerCase().includes(q) || (p.category ?? '').toLowerCase().includes(q));
+  }, [products, search]);
+
   return (
     <div className="px-4 pt-5">
       <header className="mb-4 flex items-center justify-between">
@@ -78,6 +87,16 @@ export function InventarioPage() {
         </button>
       </header>
 
+      <div className="relative mb-3">
+        <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+        <input
+          className="input pl-10"
+          placeholder="Buscar producto..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
       {isLoading ? (
         <div className="space-y-2">
           {[0, 1, 2, 3].map((i) => (
@@ -89,9 +108,14 @@ export function InventarioPage() {
           <BoxIcon size={40} />
           <p>Aún no hay productos</p>
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="card flex flex-col items-center gap-2 py-16 text-slate-400">
+          <BoxIcon size={40} />
+          <p>Sin resultados para "{search.trim()}"</p>
+        </div>
       ) : (
         <ul className="space-y-2">
-          {products.map((p, i) => (
+          {filtered.map((p, i) => (
             <li key={p.id} className="card flex items-center gap-3 p-3">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-50">
                 {p.image_url ? <img src={p.image_url} alt="" className="h-full w-full object-cover" /> : <span className="text-xl opacity-40">🛒</span>}
@@ -102,12 +126,16 @@ export function InventarioPage() {
               </div>
 
               <div className="flex shrink-0 items-center gap-0.5">
-                <button className="icon-btn h-9 w-9" onClick={() => move(i, -1)} aria-label="Subir">
-                  <ArrowUpIcon size={16} />
-                </button>
-                <button className="icon-btn h-9 w-9" onClick={() => move(i, 1)} aria-label="Bajar">
-                  <ArrowDownIcon size={16} />
-                </button>
+                {!filtering && (
+                  <>
+                    <button className="icon-btn h-9 w-9" onClick={() => move(i, -1)} aria-label="Subir">
+                      <ArrowUpIcon size={16} />
+                    </button>
+                    <button className="icon-btn h-9 w-9" onClick={() => move(i, 1)} aria-label="Bajar">
+                      <ArrowDownIcon size={16} />
+                    </button>
+                  </>
+                )}
                 <button
                   className={`icon-btn h-9 w-9 ${p.is_visible ? 'text-emerald-600' : 'text-slate-300'}`}
                   onClick={() => toggleVisible(p)}
