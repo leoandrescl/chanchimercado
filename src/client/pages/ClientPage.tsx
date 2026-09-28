@@ -80,6 +80,12 @@ export function ClientPage() {
 
   const { client, movements } = data;
 
+  const currentMonthStart = (() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  })();
+  const previousMovements = movements.filter((m) => m.occurred_at < currentMonthStart);
+
   const groups = movements.reduce<Record<string, Movement[]>>((acc, m) => {
     const key = monthLabel(m.occurred_at);
     (acc[key] ??= []).push(m);
@@ -119,8 +125,8 @@ export function ClientPage() {
 
   const clearHistory = async () => {
     try {
-      await api.del(`/api/clients/${client.id}/movements`);
-      toast.show('Historial borrado', 'success');
+      await api.del(`/api/clients/${client.id}/movements?before=${encodeURIComponent(currentMonthStart)}`);
+      toast.show('Historial anterior borrado', 'success');
       refresh();
     } catch (err) {
       toast.show(err instanceof Error ? err.message : 'No se pudo borrar el historial', 'error');
@@ -192,7 +198,7 @@ export function ClientPage() {
 
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Historial</h2>
-        {movements.length > 0 && (
+        {previousMovements.length > 0 && (
           <button
             className="btn-ghost px-2 py-1 text-xs text-slate-400 hover:text-rose-500"
             onClick={() => setConfirmClearHistory(true)}
@@ -269,13 +275,9 @@ export function ClientPage() {
       />
       <ConfirmDialog
         open={confirmClearHistory}
-        title="Borrar historial"
-        message={
-          client.balance > 0
-            ? `¿Borrar todo el historial de ${client.name}? Se eliminarán ${movements.length} movimientos y su deuda de ${formatClp(client.balance)} quedará en $0. Esta acción no se puede deshacer.`
-            : `¿Borrar todo el historial de ${client.name}? Se eliminarán ${movements.length} movimientos. Esta acción no se puede deshacer.`
-        }
-        confirmLabel="Borrar historial"
+        title="Borrar historial anterior"
+        message={`¿Borrar el historial de ${client.name} anterior a este mes? Se eliminarán ${previousMovements.length} movimientos de meses anteriores y se conservará el mes en curso. Esta acción no se puede deshacer.`}
+        confirmLabel="Borrar anteriores"
         destructive
         onConfirm={clearHistory}
         onClose={() => setConfirmClearHistory(false)}

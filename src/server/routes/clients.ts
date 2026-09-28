@@ -194,26 +194,43 @@ clients.patch('/:id', async (c) => {
 
 clients.delete('/:id/movements', async (c) => {
   const id = c.req.param('id');
+  const before = c.req.query('before');
   const client = await c.env.DB.prepare(`SELECT name FROM clients WHERE id = ?`).bind(id).first<{ name: string }>();
   if (!client) return c.json({ error: 'Cliente no encontrado' }, 404);
 
+  const where = before ? `client_id = ? AND occurred_at < ?` : `client_id = ?`;
+  const binds = before ? [id, before] : [id];
+
   const stats = await c.env.DB.prepare(
-    `SELECT COUNT(*) AS count, COALESCE(SUM(amount), 0) AS balance FROM movements WHERE client_id = ?`
+    `SELECT COUNT(*) AS count, COALESCE(SUM(amount), 0) AS balance FROM movements WHERE ${where}`
   )
-    .bind(id)
+    .bind(...binds)
     .first<{ count: number; balance: number }>();
 
   const count = stats?.count ?? 0;
   if (count > 0) {
-    await c.env.DB.prepare(`DELETE FROM movements WHERE client_id = ?`).bind(id).run();
+    await c.env.DB.prepare(`DELETE FROM movements WHERE ${where}`).bind(...binds).run();
     await logActivity(c.env.DB, {
       type: 'CLIENT_HISTORY_CLEAR',
       entity: 'movements',
       entityId: id,
-      details: { clientId: id, name: client.name, deletedCount: count, erasedBalance: stats?.balance ?? 0 },
+      details: {
+        clientId: id,
+        name: client.name,
+        deletedCount: count,
+        erasedBalance: stats?.balance ?? 0,
+        before: before ?? null,
+      },
     });
   }
-  return c.json({ ok: true, deleted: count, balance: 0 });
+
+  const remaining = await c.env.DB.prepare(
+    `SELECT COALESCE(SUM(amount), 0) AS balance FROM movements WHERE client_id = ?`
+  )
+    .bind(id)
+    .first<{ balance: number }>();
+
+  return c.json({ ok: true, deleted: count, balance: remaining?.balance ?? 0 });
 });
 
 clients.delete('/:id', async (c) => {
