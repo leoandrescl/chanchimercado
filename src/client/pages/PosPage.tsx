@@ -2,12 +2,12 @@ import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import { formatClp } from '../lib/format';
+import { formatClp, todayInput } from '../lib/format';
 import { Modal } from '../components/Modal';
 import { Avatar } from '../components/Avatar';
 import { CartPanel } from '../components/CartPanel';
 import { useToast } from '../lib/toast';
-import { BackIcon, CartIcon, CheckIcon, SearchIcon } from '../components/icons';
+import { BackIcon, CalendarIcon, CartIcon, CheckIcon, SearchIcon } from '../components/icons';
 import type { CartItem, Client, Product } from '@shared/types';
 
 export function PosPage() {
@@ -25,6 +25,8 @@ export function PosPage() {
   const [freeAmount, setFreeAmount] = useState('');
   const [freeName, setFreeName] = useState('');
   const [busy, setBusy] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [purchaseDate, setPurchaseDate] = useState(todayInput());
 
   const { data: clientsData } = useQuery({
     queryKey: ['clients'],
@@ -91,7 +93,7 @@ export function PosPage() {
     setFreeOpen(false);
   };
 
-  const checkout = async () => {
+  const openCheckout = () => {
     if (!selectedId) {
       toast.show('Selecciona un cliente', 'error');
       setPickerOpen(true);
@@ -101,15 +103,23 @@ export function PosPage() {
       toast.show('El carrito está vacío', 'error');
       return;
     }
+    setPurchaseDate(todayInput());
+    setConfirmOpen(true);
+  };
+
+  const checkout = async () => {
+    if (!selectedId) return;
     setBusy(true);
     try {
       await api.post(`/api/clients/${selectedId}/purchases`, {
         items: cart.map((i) => ({ name: i.name, quantity: i.quantity, price: i.price })),
+        occurred_at: new Date(`${purchaseDate}T12:00:00`).toISOString(),
       });
       toast.show(`Fiado registrado: ${formatClp(total)}`, 'success');
       qc.invalidateQueries({ queryKey: ['clients'] });
       qc.invalidateQueries({ queryKey: ['client', selectedId] });
       setCart([]);
+      setConfirmOpen(false);
       navigate(`/clientes/${selectedId}`);
     } catch (err) {
       toast.show(err instanceof Error ? err.message : 'No se pudo registrar', 'error');
@@ -216,7 +226,7 @@ export function PosPage() {
           onRemove={removeItem}
           onPrice={setPrice}
         >
-          <button className="btn-primary w-full py-4 text-lg" onClick={checkout} disabled={busy}>
+          <button className="btn-primary w-full py-4 text-lg" onClick={openCheckout} disabled={busy}>
             {busy ? 'Registrando...' : (
               <>
                 <CheckIcon size={20} /> Registrar fiado · {formatClp(total)}
@@ -291,8 +301,70 @@ export function PosPage() {
           </div>
         </div>
       </Modal>
+      <Modal
+        open={confirmOpen}
+        title="Confirmar fiado"
+        onClose={() => setConfirmOpen(false)}
+        footer={
+          <button className="btn-primary w-full py-4 text-lg" onClick={checkout} disabled={busy}>
+            {busy ? 'Registrando...' : (
+              <>
+                <CheckIcon size={20} /> Registrar fiado · {formatClp(total)}
+              </>
+            )}
+          </button>
+        }
+      >
+        <div className="space-y-5">
+          <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 p-4 text-center ring-1 ring-amber-100">
+            <p className="text-xs font-semibold uppercase tracking-wide text-amber-700/80">{client?.name ?? 'Cliente'}</p>
+            <p className="text-3xl font-extrabold text-amber-800">{formatClp(total)}</p>
+          </div>
+
+          <div>
+            <label className="label">
+              <span className="inline-flex items-center gap-1.5">
+                <CalendarIcon size={15} /> Fecha de la venta
+              </span>
+            </label>
+            <input
+              type="date"
+              className="input"
+              value={purchaseDate}
+              max={todayInput()}
+              onChange={(e) => setPurchaseDate(e.target.value || todayInput())}
+            />
+            <div className="mt-2.5 flex flex-wrap gap-2">
+              {[
+                { label: 'Hoy', days: 0 },
+                { label: 'Ayer', days: 1 },
+                { label: 'Anteayer', days: 2 },
+              ].map((opt) => (
+                <button
+                  key={opt.label}
+                  type="button"
+                  onClick={() => setPurchaseDate(dateOffset(opt.days))}
+                  className={`chip ${purchaseDate === dateOffset(opt.days) ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 active:bg-slate-200'}`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-slate-400">
+              Elige el día en que se anotó el fiado si no fue hoy.
+            </p>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
+}
+
+function dateOffset(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 function PlusGlyph() {
