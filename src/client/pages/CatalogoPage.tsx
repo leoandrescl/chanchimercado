@@ -82,10 +82,9 @@ export function CatalogoPage() {
       <header className="sticky top-0 z-10 overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-4 pb-5 pt-6 text-white">
         <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-emerald-500/20 blur-2xl" />
         <span className="animate-hv-float pointer-events-none absolute right-6 top-4 text-2xl">🦇</span>
-        <span className="animate-hv-float animate-hv-delay-2 pointer-events-none absolute right-16 top-10 text-lg opacity-80">🕸️</span>
-        <span className="animate-hv-float animate-hv-delay-3 pointer-events-none absolute right-4 bottom-3 text-xl opacity-80">🎃</span>
+        <span className="pointer-events-none absolute right-4 bottom-3 text-xl opacity-80">🎃</span>
         <div className="flex items-center gap-3">
-          <span className="text-3xl">🎀🐷</span>
+          <span className="text-3xl">🐷</span>
           <div>
             <h1 className="text-xl font-extrabold tracking-tight">ChanchiMercado 🎃</h1>
             <p className="text-xs text-slate-300">Haz tu pedido y retíralo en el local</p>

@@ -96,7 +96,7 @@ export function LibretaPage() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center gap-2 py-16 text-center text-slate-400">
-          <div className="text-4xl">🎀🐷</div>
+          <div className="text-4xl">🐷</div>
           <p>{query ? 'Sin resultados' : 'Aún no hay clientes'}</p>
           {!query && (
             <button className="btn-soft mt-1" onClick={() => setShowNew(true)}>
