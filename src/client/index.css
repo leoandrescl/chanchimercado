@@ -93,6 +93,48 @@ body {
   animation: cm-slide-up 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* ─── Toques de Halloween ─── */
+@keyframes cm-hv-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(5deg);
+  }
+}
+@keyframes cm-hv-swing {
+  0%,
+  100% {
+    transform: rotate(-9deg);
+  }
+  50% {
+    transform: rotate(9deg);
+  }
+}
+.animate-hv-float {
+  animation: cm-hv-float 7s ease-in-out infinite;
+}
+.animate-hv-swing {
+  transform-origin: top center;
+  animation: cm-hv-swing 4.5s ease-in-out infinite;
+}
+.animate-hv-delay-1 {
+  animation-delay: 1s;
+}
+.animate-hv-delay-2 {
+  animation-delay: 2s;
+}
+.animate-hv-delay-3 {
+  animation-delay: 3s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-hv-float,
+  .animate-hv-swing {
+    animation: none;
+  }
+}
+
 @layer components {
   .card {
     @apply rounded-3xl bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.12)] ring-1 ring-slate-900/5;

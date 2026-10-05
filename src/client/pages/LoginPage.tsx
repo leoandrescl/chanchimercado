@@ -39,13 +39,17 @@ export function LoginPage() {
   const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
   return (
-    <div className="flex min-h-full flex-col items-center justify-center px-6 py-10">
+    <div className="relative flex min-h-full flex-col items-center justify-center px-6 py-10">
+      <span className="animate-hv-float pointer-events-none absolute left-8 top-16 text-3xl opacity-70">🦇</span>
+      <span className="animate-hv-float animate-hv-delay-2 pointer-events-none absolute right-10 top-28 text-3xl opacity-70">🕷️</span>
+      <span className="animate-hv-float animate-hv-delay-3 pointer-events-none absolute left-12 bottom-16 text-3xl opacity-70">🎃</span>
+      <span className="animate-hv-float pointer-events-none absolute right-14 bottom-24 text-3xl opacity-70">👻</span>
       <div className="w-full max-w-xs">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-700 text-4xl shadow-lg shadow-emerald-900/20">
-            🐷
+          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-700 text-3xl shadow-lg shadow-emerald-900/20">
+            🎀🐷
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">ChanchiMercado</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">ChanchiMercado 🎃</h1>
           <p className="mt-1 text-sm text-slate-500">Ingresa el PIN para continuar</p>
         </div>
 

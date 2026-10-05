@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from './lib/auth';
 import { AppLayout } from './components/AppLayout';
+import { HalloweenAmbient } from './components/HalloweenAmbient';
 import { LoginPage } from './pages/LoginPage';
 import { LibretaPage } from './pages/LibretaPage';
 import { ClientPage } from './pages/ClientPage';
@@ -28,7 +29,9 @@ function Protected({ children }: { children: ReactNode }) {
 
 export function App() {
   return (
-    <Routes>
+    <>
+      <HalloweenAmbient />
+      <Routes>
       {/* Acceso solo por URL secreta (sin enlaces desde el sitio publico) */}
       <Route path="/acceso-total-chanchi" element={<LoginPage />} />
       <Route path="/catalogo" element={<CatalogoPage />} />
@@ -68,5 +71,6 @@ export function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   );
 }

@@ -45,13 +45,13 @@ export function selectPendingPurchases(
 /** Resumen: solo las compras (de la mas nueva hacia atras) que suman la deuda actual. */
 export function buildSummaryMessage({ name, balance, movements }: AccountStatement): string {
   if (balance <= 0) {
-    return `Hola ${name} 🐷\n\nTu cuenta en ChanchiMercado está *al día*. ¡Gracias por tu preferencia!`;
+    return `Hola ${name} 🎀🐷\n\nTu cuenta en ChanchiMercado está *al día*. ¡Gracias por tu preferencia! 🎃🦇`;
   }
 
   const selected = selectPendingPurchases(movements, balance);
 
   const lines: string[] = [];
-  lines.push(`Hola ${name} 🐷`);
+  lines.push(`Hola ${name} 🎀🐷`);
   lines.push('');
   lines.push('Este es el detalle de lo que tienes *pendiente*:');
   lines.push('');
@@ -75,7 +75,7 @@ export function buildSummaryMessage({ name, balance, movements }: AccountStateme
   lines.push(`💰 *TOTAL PENDIENTE: ${formatClp(balance)}*`);
   lines.push('━━━━━━━━━━━━━━━━━━');
   lines.push('');
-  lines.push('¡Muchas gracias por su preferencia!');
+  lines.push('🎃 ¡Muchas gracias por su preferencia! 🦇');
 
   return lines.join('\n');
 }
@@ -83,7 +83,7 @@ export function buildSummaryMessage({ name, balance, movements }: AccountStateme
 /** Completo: todo el historial (compras y abonos) de todos los meses. */
 export function buildAccountMessage({ name, balance, movements }: AccountStatement): string {
   const lines: string[] = [];
-  lines.push(`Hola ${name} 🐷`);
+  lines.push(`Hola ${name} 🎀🐷`);
   lines.push('');
   lines.push('*Detalle completo de tu cuenta:*');
   lines.push('');
@@ -111,7 +111,7 @@ export function buildAccountMessage({ name, balance, movements }: AccountStateme
   lines.push(`💰 *TOTAL PENDIENTE: ${formatClp(balance)}*`);
   lines.push('━━━━━━━━━━━━━━━━━━');
   lines.push('');
-  lines.push('¡Muchas gracias por su preferencia!');
+  lines.push('🎃 ¡Muchas gracias por su preferencia! 🦇');
 
   return lines.join('\n');
 }
@@ -133,7 +133,7 @@ export const STORE_PHONE = '56968067937';
 
 export function buildOrderMessage(items: OrderLine[], total: number): string {
   const lines: string[] = [];
-  lines.push('*¡Hola! Quisiera hacer un pedido:*');
+  lines.push('🎃 *¡Hola! Quisiera hacer un pedido:*');
   lines.push('');
   for (const item of items) {
     lines.push(`• ${item.name} (x${item.quantity}) — ${formatClp(item.price * item.quantity)}`);
@@ -143,7 +143,7 @@ export function buildOrderMessage(items: OrderLine[], total: number): string {
   lines.push('━━━━━━━━━━━━━━━━━━');
   lines.push(`Fecha: ${new Date().toLocaleDateString('es-CL')}`);
   lines.push('');
-  lines.push('Muchas gracias 🐷');
+  lines.push('🎃 Muchas gracias 🎀🐷 🦇');
   return lines.join('\n');
 }
 
