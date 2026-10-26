@@ -15,7 +15,7 @@ type ClientRow = {
   archived: number;
   created_at: string;
   updated_at: string;
-  balance: number | null;
+  balance: number;
 };
 
 type MovementRow = {
@@ -87,18 +87,15 @@ clients.get('/', async (c) => {
   }
   const where = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
   const { results } = await c.env.DB.prepare(
-    `SELECT c.id, c.name, c.phone, c.note, c.archived, c.created_at, c.updated_at,
-            COALESCE(SUM(m.amount), 0) AS balance
+    `SELECT c.id, c.name, c.phone, c.note, c.archived, c.created_at, c.updated_at, c.balance
        FROM clients c
-       LEFT JOIN movements m ON m.client_id = c.id
        ${where}
-      GROUP BY c.id
       ORDER BY c.name COLLATE NOCASE`
   )
     .bind(...binds)
     .all<ClientRow>();
 
-  return c.json({ clients: results.map((r) => ({ ...r, balance: r.balance ?? 0 })) });
+  return c.json({ clients: results });
 });
 
 clients.post('/', async (c) => {
@@ -122,12 +119,9 @@ clients.post('/', async (c) => {
 clients.get('/:id', async (c) => {
   const id = c.req.param('id');
   const client = await c.env.DB.prepare(
-    `SELECT c.id, c.name, c.phone, c.note, c.archived, c.created_at, c.updated_at,
-            COALESCE(SUM(m.amount), 0) AS balance
+    `SELECT c.id, c.name, c.phone, c.note, c.archived, c.created_at, c.updated_at, c.balance
        FROM clients c
-       LEFT JOIN movements m ON m.client_id = c.id
-      WHERE c.id = ?
-      GROUP BY c.id`
+      WHERE c.id = ?`
   )
     .bind(id)
     .first<ClientRow>();
@@ -150,7 +144,7 @@ clients.get('/:id', async (c) => {
     { purchases: 0, payments: 0 }
   );
 
-  return c.json({ client: { ...client, balance: client.balance ?? 0 }, movements, totals });
+  return c.json({ client, movements, totals });
 });
 
 clients.patch('/:id', async (c) => {
@@ -208,8 +202,17 @@ clients.delete('/:id/movements', async (c) => {
     .first<{ count: number; balance: number }>();
 
   const count = stats?.count ?? 0;
+  const erased = stats?.balance ?? 0;
   if (count > 0) {
-    await c.env.DB.prepare(`DELETE FROM movements WHERE ${where}`).bind(...binds).run();
+    // Borrado + ajuste de saldo en una sola transaccion.
+    await c.env.DB.batch([
+      c.env.DB.prepare(`DELETE FROM movements WHERE ${where}`).bind(...binds),
+      c.env.DB.prepare(`UPDATE clients SET balance = balance - ?, updated_at = ? WHERE id = ?`).bind(
+        erased,
+        nowIso(),
+        id
+      ),
+    ]);
     await logActivity(c.env.DB, {
       type: 'CLIENT_HISTORY_CLEAR',
       entity: 'movements',
@@ -218,15 +221,13 @@ clients.delete('/:id/movements', async (c) => {
         clientId: id,
         name: client.name,
         deletedCount: count,
-        erasedBalance: stats?.balance ?? 0,
+        erasedBalance: erased,
         before: before ?? null,
       },
     });
   }
 
-  const remaining = await c.env.DB.prepare(
-    `SELECT COALESCE(SUM(amount), 0) AS balance FROM movements WHERE client_id = ?`
-  )
+  const remaining = await c.env.DB.prepare(`SELECT balance FROM clients WHERE id = ?`)
     .bind(id)
     .first<{ balance: number }>();
 
@@ -238,7 +239,10 @@ clients.delete('/:id', async (c) => {
   const existing = await c.env.DB.prepare(`SELECT name FROM clients WHERE id = ?`).bind(id).first<{ name: string }>();
   if (!existing) return c.json({ error: 'Cliente no encontrado' }, 404);
 
-  await c.env.DB.prepare(`DELETE FROM clients WHERE id = ?`).bind(id).run();
+  await c.env.DB.batch([
+    c.env.DB.prepare(`DELETE FROM movements WHERE client_id = ?`).bind(id),
+    c.env.DB.prepare(`DELETE FROM clients WHERE id = ?`).bind(id),
+  ]);
   await logActivity(c.env.DB, {
     type: 'CLIENT_DELETE',
     entity: 'clients',
@@ -266,12 +270,18 @@ clients.post('/:id/purchases', async (c) => {
 
   const movementId = crypto.randomUUID();
   const ts = nowIso();
-  await c.env.DB.prepare(
-    `INSERT INTO movements (id, client_id, type, description, amount, occurred_at, created_at)
-     VALUES (?, ?, 'purchase', ?, ?, ?, ?)`
-  )
-    .bind(movementId, id, desc, total, normalizeOccurredAt(occurred_at), ts)
-    .run();
+  // Movimiento + saldo en una sola transaccion.
+  await c.env.DB.batch([
+    c.env.DB.prepare(
+      `INSERT INTO movements (id, client_id, type, description, amount, occurred_at, created_at)
+       VALUES (?, ?, 'purchase', ?, ?, ?, ?)`
+    ).bind(movementId, id, desc, total, normalizeOccurredAt(occurred_at), ts),
+    c.env.DB.prepare(`UPDATE clients SET balance = balance + ?, updated_at = ? WHERE id = ?`).bind(
+      total,
+      ts,
+      id
+    ),
+  ]);
 
   await logActivity(c.env.DB, {
     type: 'PURCHASE',
@@ -280,9 +290,7 @@ clients.post('/:id/purchases', async (c) => {
     details: { clientId: id, total, desc },
   });
 
-  const row = await c.env.DB.prepare(`SELECT COALESCE(SUM(amount), 0) AS balance FROM movements WHERE client_id = ?`)
-    .bind(id)
-    .first<{ balance: number }>();
+  const row = await c.env.DB.prepare(`SELECT balance FROM clients WHERE id = ?`).bind(id).first<{ balance: number }>();
   return c.json({ ok: true, balance: row?.balance ?? 0, movementId }, 201);
 });
 
@@ -295,9 +303,7 @@ clients.post('/:id/payments', async (c) => {
   if (!client) return c.json({ error: 'Cliente no encontrado' }, 404);
 
   const { amount, note, occurred_at } = parsed.data;
-  const balanceRow = await c.env.DB.prepare(
-    `SELECT COALESCE(SUM(amount), 0) AS balance FROM movements WHERE client_id = ?`
-  )
+  const balanceRow = await c.env.DB.prepare(`SELECT balance FROM clients WHERE id = ?`)
     .bind(id)
     .first<{ balance: number }>();
   const balance = balanceRow?.balance ?? 0;
@@ -309,16 +315,22 @@ clients.post('/:id/payments', async (c) => {
   const desc = note ? `Abono: ${note}` : 'Abono';
   const movementId = crypto.randomUUID();
   const ts = nowIso();
-  // Insercion atomica: solo se inserta si la deuda sigue siendo suficiente.
-  const result = await c.env.DB.prepare(
-    `INSERT INTO movements (id, client_id, type, description, amount, occurred_at, created_at)
-     SELECT ?, ?, 'payment', ?, ?, ?, ?
-      WHERE (SELECT COALESCE(SUM(amount), 0) FROM movements WHERE client_id = ?) >= ?`
-  )
-    .bind(movementId, id, desc, -amount, normalizeOccurredAt(occurred_at), ts, id, amount)
-    .run();
+  // Insercion + descuento atomicos: ambos solo aplican si la deuda sigue alcanzando.
+  const results = await c.env.DB.batch([
+    c.env.DB.prepare(
+      `INSERT INTO movements (id, client_id, type, description, amount, occurred_at, created_at)
+       SELECT ?, ?, 'payment', ?, ?, ?, ?
+        WHERE (SELECT balance FROM clients WHERE id = ?) >= ?`
+    ).bind(movementId, id, desc, -amount, normalizeOccurredAt(occurred_at), ts, id, amount),
+    c.env.DB.prepare(`UPDATE clients SET balance = balance - ?, updated_at = ? WHERE id = ? AND balance >= ?`).bind(
+      amount,
+      ts,
+      id,
+      amount
+    ),
+  ]);
 
-  if (!result.meta.changes) {
+  if (!results[0].meta.changes) {
     return c.json({ error: 'El abono no pudo aplicarse, la deuda cambió. Intenta de nuevo.' }, 409);
   }
 
@@ -329,7 +341,8 @@ clients.post('/:id/payments', async (c) => {
     details: { clientId: id, amount, note: note ?? null },
   });
 
-  return c.json({ ok: true, balance: balance - amount, movementId }, 201);
+  const row = await c.env.DB.prepare(`SELECT balance FROM clients WHERE id = ?`).bind(id).first<{ balance: number }>();
+  return c.json({ ok: true, balance: row?.balance ?? 0, movementId }, 201);
 });
 
 export default clients;

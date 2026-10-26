@@ -1,11 +1,23 @@
 import type { Bindings } from './types';
 
-async function fetchAll<T>(db: D1Database, sql: string, pageSize = 1000): Promise<T[]> {
+// Paginacion por keyset (id > ultimo): lee cada fila una sola vez.
+// Con OFFSET, SQLite vuelve a escanear desde el inicio en cada pagina (O(n^2)).
+async function fetchAll<T extends { id: string }>(
+  db: D1Database,
+  table: string,
+  pageSize = 1000
+): Promise<T[]> {
   const out: T[] = [];
-  for (let offset = 0; ; offset += pageSize) {
-    const { results } = await db.prepare(`${sql} LIMIT ${pageSize} OFFSET ${offset}`).all<T>();
+  let lastId: string | null = null;
+  for (;;) {
+    const stmt: D1PreparedStatement =
+      lastId === null
+        ? db.prepare(`SELECT * FROM ${table} ORDER BY id LIMIT ${pageSize}`)
+        : db.prepare(`SELECT * FROM ${table} WHERE id > ? ORDER BY id LIMIT ${pageSize}`).bind(lastId);
+    const { results } = await stmt.all<T>();
     out.push(...results);
     if (results.length < pageSize) break;
+    lastId = results[results.length - 1].id;
   }
   return out;
 }
@@ -26,9 +38,9 @@ export interface BackupPayload {
 export async function collectBackup(env: Bindings): Promise<BackupPayload> {
   // ORDER BY id: orden total determinista, evita saltos al paginar con empates.
   const [clients, movements, products] = await Promise.all([
-    fetchAll(env.DB, `SELECT * FROM clients ORDER BY id`),
-    fetchAll(env.DB, `SELECT * FROM movements ORDER BY id`),
-    fetchAll(env.DB, `SELECT * FROM products ORDER BY id`),
+    fetchAll(env.DB, 'clients'),
+    fetchAll(env.DB, 'movements'),
+    fetchAll(env.DB, 'products'),
   ]);
 
   return {

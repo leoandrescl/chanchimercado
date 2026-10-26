@@ -16,7 +16,15 @@ movements.delete('/:id', async (c) => {
 
   if (!existing) return c.json({ error: 'Movimiento no encontrado' }, 404);
 
-  await c.env.DB.prepare(`DELETE FROM movements WHERE id = ?`).bind(id).run();
+  // Borrado + ajuste de saldo en una sola transaccion.
+  await c.env.DB.batch([
+    c.env.DB.prepare(`DELETE FROM movements WHERE id = ?`).bind(id),
+    c.env.DB.prepare(`UPDATE clients SET balance = balance - ?, updated_at = ? WHERE id = ?`).bind(
+      existing.amount,
+      new Date().toISOString(),
+      existing.client_id
+    ),
+  ]);
 
   await logActivity(c.env.DB, {
     type: 'MOVEMENT_DELETE',
@@ -25,7 +33,7 @@ movements.delete('/:id', async (c) => {
     details: existing,
   });
 
-  const row = await c.env.DB.prepare(`SELECT COALESCE(SUM(amount), 0) AS balance FROM movements WHERE client_id = ?`)
+  const row = await c.env.DB.prepare(`SELECT balance FROM clients WHERE id = ?`)
     .bind(existing.client_id)
     .first<{ balance: number }>();
   return c.json({ ok: true, balance: row?.balance ?? 0 });

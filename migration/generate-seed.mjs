@@ -29,8 +29,8 @@ lines.push(`-- Clientes: ${debtors.length} | Movimientos: ${debts.length} | Prod
 // 1. Clientes
 for (const d of debtors) {
   lines.push(
-    `INSERT INTO clients (id, name, phone, note, archived, created_at, updated_at) VALUES (` +
-      `${q(d.id)}, ${q(d.name)}, ${q(d.phone)}, NULL, 0, ${q(d.created_at)}, ${q(d.updated_at || d.created_at)});`
+    `INSERT INTO clients (id, name, phone, note, archived, balance, created_at, updated_at) VALUES (` +
+      `${q(d.id)}, ${q(d.name)}, ${q(d.phone)}, NULL, 0, ${n(d.balance || 0)}, ${q(d.created_at)}, ${q(d.updated_at || d.created_at)});`
   );
 }
 

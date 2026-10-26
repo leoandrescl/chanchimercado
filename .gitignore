@@ -16,6 +16,7 @@ coverage/
 
 # Datos reales de clientes: NUNCA subir al repositorio (es público)
 chanchi-respaldo-*.json
+backups/
 seed/seed.sql
 seed/product-images.json
 seed/*.sql
